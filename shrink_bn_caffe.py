@@ -219,9 +219,10 @@ def generate_nbn_caffemodel(input_prototxt, input_caffemodel, output_prototxt, o
     output_network = caffe.Net(output_prototxt, caffe.TEST)
 
     for i in range(len(layers)):
-        if layers[i].type == "Input" or layers[i].type == "Eltwise" or layers[i].type == "Scale" or layers[i].type == "BatchNorm" or layers[i].type == "ImageData" or layers[i].type == "ReLU" or layers[i].type == "Pooling" or layers[i].type == "Split" or layers[i].type == "Concat" or  layers[i].type == "Flatten" or layers[i].type == "SoftmaxWithLoss":
+        if layers[i].type == "Input" or layers[i].type == "Eltwise" or layers[i].type == "Scale" or layers[i].type == "BatchNorm" or layers[i].type == "ImageData" or layers[i].type == "ReLU" or layers[i].type == "Pooling" or layers[i].type == "Split" or layers[i].type == "Concat" or  layers[i].type == "Flatten" or layers[i].type == "SoftmaxWithLoss"\
+               or layers[i].type == 'Upsample':
             continue
-        elif layers[i].type == "Convolution":
+        elif layers[i].type == "Convolution" and (i+2 < len(layers)):
             if not (layers[i+2].type == "Scale" and layers[i+1].type == "BatchNorm"):
                 continue
             bn_conv = layers[i+1].name
