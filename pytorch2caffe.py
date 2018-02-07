@@ -73,6 +73,8 @@ def pytorch2caffe(input_var, output_var, protofile, caffemodel):
                 biases = func.next_functions[0][0].variable.data
                 weights = func.next_functions[2][0].next_functions[0][0].variable.data
                 save_fc2caffe(weights, biases, params[parent_name])
+            elif parent_type == 'IndexBackward':
+                print func
         
     convert_layer(output_var.grad_fn)
     print('save caffemodel to %s' % caffemodel)
@@ -147,6 +149,7 @@ def pytorch2prototxt(input_var, output_var):
             conv_param['num_output'] = weights.size(0)
             conv_param['pad'] = func.padding[0]
             conv_param['kernel_size'] = weights.size(2)
+            conv_param['dilation'] = func.dilation[0]
             conv_param['stride'] = func.stride[0]
             if func.next_functions[2][0] == None:
                 conv_param['bias_term'] = 'false'
@@ -201,7 +204,15 @@ def pytorch2prototxt(input_var, output_var):
             eltwise_param = OrderedDict()
             eltwise_param['operation'] = 'SUM'
             layer['eltwise_param'] = eltwise_param
-    
+        elif parent_type == 'MaxUnpool2dBackward':
+            conv_param = OrderedDict()
+            conv_param['kernel_size']= 2 #func.next_functions[0][0].kernel_size
+            conv_param['stride']= 2 # func.next_functions[0][0].stride
+            conv_param['num_output'] = func.saved_variables[0].size(1)
+            layer['convolution_param'] = conv_param
+            layer['bottom'] = parent_bottoms[0]
+            print func.output_size
+
         layer['top'] = parent_top # reset layer['top'] as parent_top may change
         if parent_type != 'ViewBackward':
             if parent_type == "BatchNormBackward":
