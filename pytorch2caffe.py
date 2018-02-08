@@ -150,6 +150,7 @@ def pytorch2prototxt(input_var, output_var):
             conv_param['pad'] = func.padding[0]
             conv_param['kernel_size'] = weights.size(2)
             conv_param['dilation'] = func.dilation[0]
+            conv_param['group'] = func.groups
             conv_param['stride'] = func.stride[0]
             if func.next_functions[2][0] == None:
                 conv_param['bias_term'] = 'false'
