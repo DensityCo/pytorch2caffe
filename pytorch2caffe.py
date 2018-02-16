@@ -145,8 +145,9 @@ def pytorch2prototxt(input_var, output_var):
         layer['top'] = parent_top
         if parent_type == 'ConvNdBackward':
             weights = func.next_functions[1][0].variable
+            biases = func.next_functions[2][0].variable
             conv_param = OrderedDict()
-            conv_param['num_output'] = weights.size(0)
+            conv_param['num_output'] = biases.size(0)
             conv_param['pad'] = func.padding[0]
             conv_param['kernel_size'] = weights.size(2)
             conv_param['dilation'] = func.dilation[0]
@@ -155,6 +156,8 @@ def pytorch2prototxt(input_var, output_var):
             if func.next_functions[2][0] == None:
                 conv_param['bias_term'] = 'false'
             layer['convolution_param'] = conv_param
+            if func.transposed:
+                layer['type'] = 'Deconvolution'
         elif parent_type == 'BatchNormBackward':
             bn_layer = OrderedDict()
             bn_layer['name'] = parent_name + "_bn"
@@ -184,6 +187,7 @@ def pytorch2prototxt(input_var, output_var):
             pooling_param['stride'] = func.stride[0]
             pooling_param['pad'] = func.padding[0]
             layer['pooling_param']  = pooling_param
+            layer['top'] = (parent_top, parent_top+'_idx')
         elif parent_type == 'AvgPool2dBackward':
             pooling_param = OrderedDict()
             pooling_param['pool'] = 'AVE'
@@ -206,13 +210,7 @@ def pytorch2prototxt(input_var, output_var):
             eltwise_param['operation'] = 'SUM'
             layer['eltwise_param'] = eltwise_param
         elif parent_type == 'MaxUnpool2dBackward':
-            conv_param = OrderedDict()
-            conv_param['kernel_size']= 2 #func.next_functions[0][0].kernel_size
-            conv_param['stride']= 2 # func.next_functions[0][0].stride
-            conv_param['num_output'] = func.saved_variables[0].size(1)
-            layer['convolution_param'] = conv_param
-            layer['bottom'] = parent_bottoms[0]
-            print func.output_size
+            layer['bottom'] = (parent_bottoms[0], parent_bottoms[0]+'_idx')
 
         layer['top'] = parent_top # reset layer['top'] as parent_top may change
         if parent_type != 'ViewBackward':

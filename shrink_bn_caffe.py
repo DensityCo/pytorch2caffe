@@ -121,6 +121,8 @@ def generate_nbn_prototxt(input_prototxt, input_caffemodel, output_prototxt):
                 conv_param = layer.convolution_param
                 if conv_param.num_output!=0:
                     convolution_param_res.append('    num_output: %d'%conv_param.num_output)
+                if conv_param.group!=0:
+                    convolution_param_res.append('    group: %d'%conv_param.group)
                 if len(conv_param.kernel_size) > 0:
                     for kernel_size in conv_param.kernel_size:
                         convolution_param_res.append('    kernel_size: %d' % kernel_size)
